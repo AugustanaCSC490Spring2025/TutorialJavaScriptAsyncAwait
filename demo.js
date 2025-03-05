@@ -1,59 +1,93 @@
-// Full tutorial for asynchronous programming in JavaScript with callbacks, promises and async/await.
+/* ASYNCHRONOUS PROGRAMMING */
 
-/* ASYNCHRONOUS PROGRAMMING 
-JavaScript is a single-threaded programming language, and so can only execute one line of code at a time.
-With JS alone, if we were to perform any interaction with a webpage (e.g., click a button), then the whole page would stop until the interaction is resolved. 
+// DEMO 1: Naive use of asynchronous code returns
 
+function fetchData() { setTimeout(() => 'Data fetched!', 1000);}
+console.log(fetchData()); // undefined, since fetchData() hasn't returned anything yet
+
+/* CALLBACKS 
+By passing in functions that will be executed once the asynchronous code has finished, we can handle the data when it is returned.
+This function we pass in is called a callback function. 
+We are essentially saying, "Once you're done, run this."
 */
 
-let fetchData = () => { setTimeout(() => { console.log('Data fetched!') }, 2000) } // Simulating fetching some data. 
+// DEMO 2.a: Callback
 
-fetchData();
-console.log('Hi!'); 
-
-// "Hi!" will be logged before 'Data fetched!', because the fetchData function is asynchronous.
-// This can be an issue in some cases, such as when later code depends on the data fetched by the asynchronous function.
-
-/* CALLBACKS
-Callbacks are what we call functions that we pass as arguments to other functions.
-Callbacks are a common way to handle asynchronous code in JavaScript, since we can call the callback inside the "outer" function to ensure it runs after. 
-Here is the same function as before, but now using a callback: */
-
-function useCallback(callback) {            // pass in the name of callback function with no parentheses
-    console.log('First!'); 
-    callback()   
+function greetingCallback(callback) { 
+    console.log('Hello'); 
+    callback(); 
 }
 
-function foo() {
-    console.log('Hi!');
+greetingCallback(() => { console.log('Goodbye!'); });
+
+// DEMO 2.b: success/failure callback
+
+function useCallback(success, failure) { 
+    console.log('Performing operation...');
+    
+    const err = false;
+    if (!err) {
+        success();
+    } else {
+        failure();
+    }
 }
 
-function secondFunction() {
-    console.log('Second!');
+function successCallback() {
+    console.log('Operation sucessful!');
 }
 
-useCallback(secondFunction); // This will log 'Data fetched!' first, then 'Hi!'
+function failureCallback() {
+    console.log('Operation failed!');
+}
 
-// This can get really ugly when you have multiple asynchronous functions that depend on each other, as you have to nest all of them.
-// Here is an example of nested callbacks, what is lovingly called "callback hell": 
+useCallback(successCallback, failureCallback); 
+// Or we can use an anonymous function
+// useCallback(() => { console.log('Operation sucessful!'); }, () => { console.log('Operation failed!'); });
 
-// function callbackHell() {
-//     setTimeout(() => {
-//         console.log('First function done!');
-//         setTimeout(() => {
-//             console.log('Second function done!');
-//             setTimeout(() => {
-//                 console.log('Third function done!');
-//             }, 2000);
-//         }, 2000);
-//     }, 2000);
-// }
+// DEMO 2.c: Callback Hell
+
+function first(callback) {
+    console.log('First');
+    setTimeout(callback, 1000);
+}
+
+function second(callback) {
+    console.log('Second');
+    setTimeout(callback, 1000);
+}
+
+function third(callback) {
+    console.log('Third');
+    setTimeout(callback, 1000);
+}
+
+function fourth(callback) {
+    console.log('Fourth');
+    setTimeout(callback, 1000); 
+}
+
+// This is an example of callback hell
+first(() => {
+    second(() => {
+        third(() => {
+            fourth(() => {
+                console.log('Done!');
+            });
+        });
+    });
+});
 
 // PROMISES
-// Promises are a newer feature in JavaScript that provide a cleaner way to handle asynchronous code.
+// Promises are a way to handle asynchronous code in JavaScript, and are a more elegant solution than callbacks.
+// It is essentially an object that we attach callbacks to, instead of passing them as arguments.
 
-const examplePromise = fetch('https://jsonplaceholder.typicode.com/posts/1'); // fetch is a built-in function that returns a promise
+// DEMO 3.a: Handling Promises
+const data = fetch('https://jsonplaceholder.typicode.com/posts');
 
-examplePromise.then(() => {})   // then is a method that takes a callback function as an argument, which will run when the promise is resolved.
-    .then(() => {})             // you can chain these together to run multiple functions in order.
-    .catch();                   // catch is a method that takes a callback function as an argument, which will run when the promise is rejected.
+data.then(response => {
+    console.log(response);
+}
+).catch(error => {
+    console.log(error);
+});
