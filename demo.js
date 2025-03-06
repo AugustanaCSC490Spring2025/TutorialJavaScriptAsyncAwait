@@ -1,93 +1,97 @@
-/* ASYNCHRONOUS PROGRAMMING */
+// I have commented such that all of the demo code wont run. If you want to run something in particular, uncomment the respective function call.
 
-// DEMO 1: Naive use of asynchronous code returns
+// CALLBACKS
+// Syncronous Callbacks
+// const myFunction = (callback) => { console.log('First'); callback(); }
 
-function fetchData() { setTimeout(() => 'Data fetched!', 1000);}
-console.log(fetchData()); // undefined, since fetchData() hasn't returned anything yet
 
-/* CALLBACKS 
-By passing in functions that will be executed once the asynchronous code has finished, we can handle the data when it is returned.
-This function we pass in is called a callback function. 
-We are essentially saying, "Once you're done, run this."
-*/
-
-// DEMO 2.a: Callback
-
-function greetingCallback(callback) { 
-    console.log('Hello'); 
-    callback(); 
+// Asynchronous Callbacks
+const myFunction = (callback) => {  // pass in a function with no parentheses as callback
+    setTimeout(() => {
+        console.log('First');
+        callback();                 // can treat it as a normal function to call when you want it.
+    }, 1000)
 }
+//myFunction(() => console.log('Second'));
 
-greetingCallback(() => { console.log('Goodbye!'); });
+// Examples
 
-// DEMO 2.b: success/failure callback
+// setTimeout(() => { console.log('This will run after 2 seconds!'); }, 2000);
+// document.getElementById('btn').addEventListener("click", () => console.log("button clicked!)")); // This one wont work, since it's not connected to the DOM in any way
 
-function useCallback(success, failure) { 
-    console.log('Performing operation...');
-    
-    const err = false;
-    if (!err) {
-        success();
-    } else {
-        failure();
-    }
+//setTimeout callback Hell
+function callbackHell() {
+    setTimeout(() => {
+        console.log('This will run after 2 seconds!');
+        setTimeout(() => {
+            console.log('This will run after 4 seconds!');
+            setTimeout(() => {
+                console.log('This will run after 6 seconds!');
+            }, 2000);
+        }, 2000);
+    }, 2000); // Only 3 deep, and its already kind of hard to follow
 }
-
-function successCallback() {
-    console.log('Operation sucessful!');
-}
-
-function failureCallback() {
-    console.log('Operation failed!');
-}
-
-useCallback(successCallback, failureCallback); 
-// Or we can use an anonymous function
-// useCallback(() => { console.log('Operation sucessful!'); }, () => { console.log('Operation failed!'); });
-
-// DEMO 2.c: Callback Hell
-
-function first(callback) {
-    console.log('First');
-    setTimeout(callback, 1000);
-}
-
-function second(callback) {
-    console.log('Second');
-    setTimeout(callback, 1000);
-}
-
-function third(callback) {
-    console.log('Third');
-    setTimeout(callback, 1000);
-}
-
-function fourth(callback) {
-    console.log('Fourth');
-    setTimeout(callback, 1000); 
-}
-
-// This is an example of callback hell
-first(() => {
-    second(() => {
-        third(() => {
-            fourth(() => {
-                console.log('Done!');
-            });
-        });
-    });
-});
+//callbackHell();
 
 // PROMISES
-// Promises are a way to handle asynchronous code in JavaScript, and are a more elegant solution than callbacks.
-// It is essentially an object that we attach callbacks to, instead of passing them as arguments.
+// Handling Promises
 
-// DEMO 3.a: Handling Promises
-const data = fetch('https://jsonplaceholder.typicode.com/posts');
+// fetch('https://jsonplaceholder.typicode.com/posts/1')
+//     .then(response => response.json())                                  // The .then() method waits for resolve() to be called in the Promise, and then it runs this callback function
+//     .then(data => console.log(data))                                    
+//     .catch(error => console.log(error));                                // The .catch() method waits for reject() to be called in the Promise, and then it runs this callback function. can catch errors from all chained promises before it.
 
-data.then(response => {
-    console.log(response);
-}
-).catch(error => {
-    console.log(error);
+// Creating a Promise
+
+const myPromise = new Promise((resolve, reject) => { 
+    // This anonymous function in the promise, called the executor, determines whether or not the promise is resolved or rejected
+    // It will do this based on the async code you are promising to run (e.g., your fetch fails for some reason).
+    const isSuccessful = true;              // Simulating this response with a simple boolean. Change this if you want it to reject. 
+    if (isSuccessful) {
+        resolve('Success!');        // The resolve() method is called when the promise is successful
+    } else {
+        reject('Failure!');         // The reject() method is called when the promise fails
+    }
 });
+
+// ASYNC/AWAIT
+async function fetchPost() {
+    try{
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts/1');
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.log(error);
+    }
+    
+}
+// fetchPost();
+
+// Promise.all
+async function fetchTwoPostsSlow(id1,id2) {
+    try {
+        const response1 = await fetch(`https://jsonplaceholder.typicode.com/posts/${id1}`);
+        const response2 = await fetch(`https://jsonplaceholder.typicode.com/posts/${id2}`);
+        const data1 = await response1.json();
+        const data2 = await response2.json();
+        console.log(data1);
+        console.log(data2);
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
+//fetchTwoPostsSlow(1,2);
+
+async function fetchTwoPostsFaster(id1,id2) {
+    try {
+        const resonse1 = fetch(`https://jsonplaceholder.typicode.com/posts/${id1}`);
+        const response2 = fetch(`https://jsonplaceholder.typicode.com/posts/${id2}`);
+        const responses = await Promise.all([resonse1, response2]);
+        const data = await Promise.all([responses[0].json(), responses[1].json()]);
+        console.log(data);
+    } catch (error) {
+        console.log(error);
+    }
+}
+//fetchTwoPostsFaster(1,2);
